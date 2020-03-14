@@ -1,0 +1,29 @@
+python -u bin/train_segmentation_refined.py \
+  --dataset_name='Pascal' \
+  --num_segmentation_classes=21 \
+  --invalid_label=255. \
+  --data_root=sample_data \
+  --logits_root=sample_data/inputs_segmentation \
+  --train_list=sample_data/lists/Pascal_sample.txt \
+  --val_list=sample_data/lists/Pascal_sample.txt \
+  --base_lr=1e-5 \
+  --preprocessing_lr=1e-4 \
+  --batch_size=16 \
+  --batch_size_val=1 \
+  --workers=8 \
+  --evaluation-frequency=1 \
+  --epochs=500 \
+  --save_step=100 \
+  --save_folder=<specify save folder here> \
+  --kernel_size_preprocessing=5 \
+  --kernel_size_joint=7 \
+  --depth_layers_guidance 3 15 15 10 \
+  --depth_layers_prob 21 5 5 2 \
+  --depth_layers_joint 21 21 21 \
+  --conv_specification 'p' 'p' \
+  --weight_decay=0.0 \
+  --shared_filters \
+  --pretrained_model_refine=checkpoints/segmentation_refinement_pascal.pth \
+  --evaluate_only \
+  --visualize \
+  # Use --fixed_gaussian_weight to determine preprocessing_lr with fixed Gaussian filter kernels in combination branch

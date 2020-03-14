@@ -1,0 +1,119 @@
+From fa0341d7139bd25ccb5192e390985c27f1c3c6b6 Mon Sep 17 00:00:00 2001
+From: Anne Wannenwetsch <anne.wannenwetsch@visinf.tu-darmstadt.de>
+Date: Thu, 28 Nov 2019 11:38:38 +0100
+Subject: [PATCH] Apply changes PPAC-HD3.
+
+---
+ data/hd3data.py  |  7 +++++++
+ hd3model.py      |  6 ++++++
+ inference.py     | 10 ++++++++--
+ utils/flowlib.py |  6 ++++++
+ 4 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/data/hd3data.py b/data/hd3data.py
+index 81edb8f..682f203 100644
+--- a/data/hd3data.py
++++ b/data/hd3data.py
+@@ -34,6 +34,10 @@ class HD3Data(Dataset):
+         for i, name in enumerate(self.data_list[index]):
+             if i < img_num:
+                 img_list.append(read_gen(join(self.data_root, name), "image"))
++            elif 'invalid' in name:
++                mask = read_gen(join(self.data_root, name), "mask")
++                label = np.concatenate((label_list[-1], mask), 2)
++                label_list[-1] = label
+             else:
+                 label = read_gen(join(self.data_root, name), self.mode)
+                 if self.mode == "stereo":
+@@ -64,6 +68,9 @@ def read_gen(file_name, mode):
+     elif mode == 'stereo':
+         assert ext in ['.png', '.pfm']
+         return fl.read_disp(file_name)
++    elif mode == 'mask':
++        assert ext in ['.png']
++        return fl.read_mask(file_name)
+     else:
+         raise ValueError('Unknown mode {}'.format(mode))
+ 
+diff --git a/hd3model.py b/hd3model.py
+index fac9db5..74f6acb 100644
+--- a/hd3model.py
++++ b/hd3model.py
+@@ -24,7 +24,9 @@ class HD3Model(nn.Module):
+                 img_list,
+                 label_list=None,
+                 get_vect=True,
++                get_full_vect=False,
+                 get_prob=False,
++                get_full_prob=False,
+                 get_loss=False,
+                 get_epe=False,
+                 get_vis=False):
+@@ -33,8 +35,12 @@ class HD3Model(nn.Module):
+         ms_prob, ms_vect = self.hd3net(torch.cat(img_list, 1))
+         if get_vect:
+             result['vect'] = ms_vect[-1]
++        if get_full_vect:
++            result['full_vect'] = ms_vect
+         if get_prob:
+             result['prob'] = ms_prob[-1]
++        if get_full_prob:
++            result['full_prob'] = ms_prob
+         if get_loss:
+             result['loss'] = self.criterion(ms_prob, ms_vect, label_list[0],
+                                             self.corr_range, self.ds)
+diff --git a/inference.py b/inference.py
+index 12084a8..ca8ce14 100755
+--- a/inference.py
++++ b/inference.py
+@@ -31,6 +31,11 @@ def get_parser():
+     parser.add_argument('--context', action='store_true', default=False)
+     parser.add_argument('--data_root', type=str, help='data root')
+     parser.add_argument('--data_list', type=str, help='data list')
++    parser.add_argument(
++        '--additional_masks',
++        action='store_true',
++        default=False,
++        help='additional invalidity masks loaded')
+     parser.add_argument(
+         '--batch_size',
+         type=int,
+@@ -82,7 +87,8 @@ def main():
+     # each line of data_list should contain image_0, image_1, (optional gt)
+     with open(args.data_list, 'r') as f:
+         fnames = f.readlines()
+-        assert len(fnames[0].strip().split(' ')) == 2 + args.evaluate
++        assert len(fnames[0].strip().split(
++            ' ')) == 2 + args.evaluate + args.additional_masks
+         names = [l.strip().split(' ')[0].split('/')[-1] for l in fnames]
+         sub_folders = [
+             l.strip().split(' ')[0][:-len(names[i])]
+@@ -103,7 +109,7 @@ def main():
+         mode=args.task,
+         data_root=args.data_root,
+         data_list=args.data_list,
+-        label_num=args.evaluate,
++        label_num=args.evaluate + args.additional_masks,
+         transform=val_transform,
+         out_size=True)
+     val_loader = torch.utils.data.DataLoader(
+diff --git a/utils/flowlib.py b/utils/flowlib.py
+index f50e8a8..72826a8 100644
+--- a/utils/flowlib.py
++++ b/utils/flowlib.py
+@@ -406,6 +406,12 @@ def read_flo_file(filename):
+     return data2d
+ 
+ 
++def read_mask(filename):
++    mask = Image.open(filename)
++    mask = 1. - np.array(mask) / 255.
++    return np.expand_dims(mask, axis=2)
++
++
+ def read_png_file(flow_file):
+     """
+     Read from KITTI .png file
+-- 
+2.17.1
+

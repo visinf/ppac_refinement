@@ -1,0 +1,24 @@
+python -u bin/inference_hd3_refined.py \
+  --save_folder=<specify save folder here> \
+  --data_root=sample_data \
+  --data_list=sample_data/lists/MPISintel_sample.txt \
+  --additional_flow_masks \
+  --evaluate \
+  --batch_size=1 \
+  --workers=8 \
+  --model_hd3_path=<specify path to HD3 checkpoint here> \
+  --encoder=dlaup \
+  --decoder=hda \
+  --context \
+  --model_refine_path=checkpoints/flow_refinement_sintel_final.pth \
+  --kernel_size_preprocessing=5 \
+  --kernel_size_joint=7 \
+  --depth_layers_guidance 3 15 15 10 \
+  --depth_layers_prob 5 5 5 2 \
+  --depth_layers_joint 2 2 2 \
+  --conv_specification 'p' 'p' \
+  --shared_filters \
+  --visualize \
+  --save_refined \
+  --flow_format='flo' \
+#  --save_inputs

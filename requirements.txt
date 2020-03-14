@@ -1,0 +1,6 @@
+cupy
+fastrlock
+opencv-python
+protobuf
+tensorboard
+tensorboardX

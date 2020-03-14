@@ -1,0 +1,24 @@
+python -u bin/train_flow_refined.py \
+  --dataset_name='MPISintel' \
+  --data_root=sample_data \
+  --flow_root=sample_data/inputs_flow \
+  --train_list=sample_data/lists/MPISintel_sample.txt \
+  --val_list=sample_data/lists/MPISintel_sample.txt \
+  --base_lr=1e-3 \
+  --batch_size=8 \
+  --batch_size_val=1 \
+  --workers=8 \
+  --evaluation-frequency=1 \
+  --epochs=500 \
+  --save_step=100 \
+  --save_folder=<specify save folder here> \
+  --kernel_size_preprocessing=5 \
+  --kernel_size_joint=7 \
+  --depth_layers_guidance 3 15 15 10 \
+  --depth_layers_prob 5 5 5 2 \
+  --depth_layers_joint 2 2 2 \
+  --conv_specification 'p' 'p' \
+  --shared_filters \
+  --pretrained_model_refine=checkpoints/flow_refinement_sintel_final.pth \
+  --evaluate_only \
+  # For training on the entire Sintel dataset, please use --epochs=410 and --dataset_name='MPISintel_full'
