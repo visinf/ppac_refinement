@@ -2,7 +2,7 @@
 
 This source code release accompanies the paper
 
-**Probabilistic Pixel-Adaptive Refinement Networks** \
+[**Probabilistic Pixel-Adaptive Refinement Networks**](http://openaccess.thecvf.com/content_CVPR_2020/html/Wannenwetsch_Probabilistic_Pixel-Adaptive_Refinement_Networks_CVPR_2020_paper.html) \
 Anne S. Wannenwetsch, Stefan Roth.
 In CVPR 2020.
 
